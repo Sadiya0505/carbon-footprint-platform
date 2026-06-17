@@ -108,14 +108,14 @@ npm run dev
 ![Home](screenshots/home.png)
 
 ### Calculator
-![Calculator](screenshots/calculator-transportr.png)
-![Calculator](screenshots/calculator-home energy.png)
-![Calculator](screenshots/calculator-diet.png)
-![Calculator](screenshots/calculator-waste.png)
-![Calculator](screenshots/calculator-shopping.png)
+![Transport](screenshots/calculator-transport.png)
+![Home Energy](screenshots/calculator-home-energy.png)
+![Diet](screenshots/calculator-diet.png)
+![Waste](screenshots/calculator-waste.png)
+![Shopping](screenshots/calculator-shopping.png)
 
 ### Results Dashboard
-![Results](screenshots/dashboard.png
+![Results](screenshots/dashboard.png)
 
 ### History
 ![History](screenshots/history.png)
