@@ -108,10 +108,17 @@ npm run dev
 ![Home](screenshots/home.png)
 
 ### Calculator
-![Calculator](screenshots/calculator.png)
+![Transport](screenshots/calculator-transport.png)
+![Home Energy](screenshots/calculator-home-energy.png)
+![Diet](screenshots/calculator-diet.png)
+![Waste](screenshots/calculator-waste.png)
+![Shopping](screenshots/calculator-shopping.png)
 
 ### Results Dashboard
-![Results](screenshots/results.png)
+![Results](screenshots/dashboard.png)
+
+### History
+![History](screenshots/history.png)
 
 ### 90-Day Roadmap
 ![Roadmap](screenshots/roadmap.png)
