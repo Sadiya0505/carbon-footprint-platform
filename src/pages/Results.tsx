@@ -1,69 +1,18 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { GoogleGenAI } from '@google/genai';
+import { calculateCarbonScore, AVERAGES } from '../lib/emissionFactors';
+import { useGeminiInsights } from '../hooks/useGeminiInsights';
 import ReactMarkdown from 'react-markdown';
 import { Download, Bot, Leaf } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { calculateCarbonScore, AVERAGES } from '../lib/emissionFactors';
+import { useRef, useState } from 'react';
 
 const COLORS = ['#16a34a', '#2563eb', '#f59e0b', '#dc2626', '#8b5cf6'];
 
 export default function Results() {
   const currentData = useStore((state) => state.currentData);
-  const [aiInsight, setAiInsight] = useState<string>('');
-  const [loadingInsight, setLoadingInsight] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
-
-  const generateInsights = useCallback(async () => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-      setAiInsight("**API Key Missing**\n\nPlease add `VITE_GEMINI_API_KEY` to your `.env` file to enable AI insights.");
-      return;
-    }
-
-    setLoadingInsight(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const prompt = `You are CarbonSaathi, an AI carbon footprint advisor for Indian users.
-
-A user has an annual carbon footprint of ${Math.round(currentData!.total)} kg CO2e.
-- Transport: ${Math.round(currentData!.transport)} kg
-- Home Energy: ${Math.round(currentData!.energy)} kg  
-- Diet: ${Math.round(currentData!.diet)} kg
-- Waste: ${Math.round(currentData!.waste)} kg
-- Shopping: ${Math.round(currentData!.shopping)} kg
-
-India average is 1,900 kg/year. Paris Agreement target is 2,000 kg/year.
-
-Give exactly 3 personalized, actionable tips. Format your response EXACTLY like this:
-
-Your footprint is [X] kg CO2e — [one sentence comparing to India average, encouraging tone].
-
-**Tip 1: [Title]**
-[One specific action they can take based on their highest emission category, with estimated savings]
-
-**Tip 2: [Title]**
-[One specific action, with estimated savings]
-
-**Tip 3: [Title]**
-[One specific action, with estimated savings]
-
-Keep it concise, specific to their numbers, and encouraging.`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-      });
-      setAiInsight(response.text || "Could not generate insights at this time.");
-    } catch (error) {
-      console.error('Error generating AI insights:', error);
-      setAiInsight("**Connection Error**\n\nUnable to connect to Gemini API. Please check your API key in `.env` file.");
-    } finally {
-      setLoadingInsight(false);
-    }
-  }, [currentData]);
+  const { insight: aiInsight, loading: loadingInsight, generate: generateInsights } = useGeminiInsights(currentData);
 
   useEffect(() => {
     if (currentData) {

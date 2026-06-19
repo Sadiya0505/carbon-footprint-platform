@@ -14,9 +14,21 @@
     ],
     "rewrites": [
       {
+        "source": "/api/generateInsights",
+        "function": "generateInsights"
+      },
+      {
+        "source": "/api/generateRoadmap",
+        "function": "generateRoadmap"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
     ]
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs20"
   }
 }

@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { GoogleGenAI } from '@google/genai';
 import { CheckCircle2, Circle, Bot, Leaf, RefreshCw, ArrowRight } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useGeminiRoadmap } from '../hooks/useGeminiRoadmap';
 
 interface RoadmapItem {
   text: string;
@@ -38,74 +38,8 @@ const DEFAULT_PLAN: RoadmapPlan = {
 
 export default function Roadmap() {
   const currentData = useStore((state) => state.currentData);
-  const [plan, setPlan] = useState<RoadmapPlan>(DEFAULT_PLAN);
-  const [loading, setLoading] = useState(false);
+  const { plan, loading, generate: generateAIPlan, isAIGenerated } = useGeminiRoadmap(currentData);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
-  const [isAIGenerated, setIsAIGenerated] = useState(false);
-
-  const generateAIPlan = useCallback(async () => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey || !currentData) return;
-
-    setLoading(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-
-      const prompt = `You are CarbonSaathi, an AI sustainability advisor for Indian users.
-
-A user has these annual carbon emissions:
-- Transport: ${Math.round(currentData.transport)} kg CO₂e
-- Home Energy: ${Math.round(currentData.energy)} kg CO₂e
-- Diet: ${Math.round(currentData.diet)} kg CO₂e
-- Waste: ${Math.round(currentData.waste)} kg CO₂e
-- Shopping: ${Math.round(currentData.shopping)} kg CO₂e
-- TOTAL: ${Math.round(currentData.total)} kg CO₂e (India average: 1900 kg)
-
-Generate a personalized 90-day carbon reduction roadmap. Focus most tips on their TOP 2 highest emission categories.
-
-Respond ONLY with valid JSON in this exact format, no markdown, no explanation:
-{
-  "summary": "One encouraging sentence about their journey ahead mentioning their total footprint",
-  "phase30": [
-    {"text": "Specific easy action", "saving": "Save ~X kg CO₂/year"},
-    {"text": "Specific easy action", "saving": "Save ~X kg CO₂/year"},
-    {"text": "Specific easy action", "saving": "Save ~X kg CO₂/year"}
-  ],
-  "phase60": [
-    {"text": "Specific medium-effort action", "saving": "Save ~X kg CO₂/year"},
-    {"text": "Specific medium-effort action", "saving": "Save ~X kg CO₂/year"},
-    {"text": "Specific medium-effort action", "saving": "Save ~X kg CO₂/year"}
-  ],
-  "phase90": [
-    {"text": "Specific big-impact action", "saving": "Save ~X kg CO₂/year"},
-    {"text": "Specific big-impact action", "saving": "Save ~X kg CO₂/year"},
-    {"text": "Specific big-impact action", "saving": "Save ~X kg CO₂/year"}
-  ]
-}`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-      });
-
-      const text = response.text || '';
-      const cleaned = text.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
-
-      setPlan({
-        summary: parsed.summary,
-        phase30: parsed.phase30.map((i: Omit<RoadmapItem, 'done'>) => ({ ...i, done: false })),
-        phase60: parsed.phase60.map((i: Omit<RoadmapItem, 'done'>) => ({ ...i, done: false })),
-        phase90: parsed.phase90.map((i: Omit<RoadmapItem, 'done'>) => ({ ...i, done: false })),
-      });
-      setIsAIGenerated(true);
-    } catch (error) {
-      console.error('Error generating roadmap:', error);
-      setPlan(DEFAULT_PLAN);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentData]);
 
   useEffect(() => {
     if (currentData) {
