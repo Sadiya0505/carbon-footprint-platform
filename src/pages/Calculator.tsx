@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
-import { EMISSION_FACTORS } from '../lib/emissionFactors';
+import { calculateFootprint } from '../lib/calculateFootprint';
 import { Car, Zap, Utensils, Trash2, ShoppingBag, ArrowRight, ArrowLeft, Leaf } from 'lucide-react';
 
 const FUN_FACTS = [
@@ -52,37 +52,8 @@ export default function Calculator() {
   };
 
   const calculateAndSave = () => {
-    // Calculate yearly emissions (kg CO2e)
-    const transportTotal = 
-      (transport.petrolKm * EMISSION_FACTORS.transport.petrolCar +
-      transport.dieselKm * EMISSION_FACTORS.transport.dieselCar +
-      transport.evKm * EMISSION_FACTORS.transport.ev +
-      transport.busKm * EMISSION_FACTORS.transport.bus +
-      transport.trainKm * EMISSION_FACTORS.transport.train +
-      transport.flightKm * EMISSION_FACTORS.transport.flight) * 52; // Weekly to yearly
-
-    // Monthly to yearly, divided by household size
-    const energyTotal = 
-      ((energy.electricityKwh * EMISSION_FACTORS.electricity * 12) + 
-      (energy.lpgCylinders * EMISSION_FACTORS.lpg * 12)) / Math.max(1, energy.householdSize);
-
-    const dietTotal = EMISSION_FACTORS.diet[diet] * 365;
-
-    const weeklyWasteEmissions = 
-      (waste.kgPerWeek * (1 - waste.recyclingRate) * EMISSION_FACTORS.waste.general) +
-      (waste.kgPerWeek * waste.recyclingRate * EMISSION_FACTORS.waste.recycled);
-    const wasteTotal = weeklyWasteEmissions * 52;
-
-    const shoppingTotal = EMISSION_FACTORS.shopping[shopping] * 12;
-
-    setFootprintData({
-      transport: transportTotal,
-      energy: energyTotal,
-      diet: dietTotal,
-      waste: wasteTotal,
-      shopping: shoppingTotal,
-    });
-
+    const breakdown = calculateFootprint({ transport, energy, diet, waste, shopping });
+    setFootprintData(breakdown);
     navigate('/results');
   };
 
@@ -92,12 +63,21 @@ export default function Calculator() {
     <div className="max-w-3xl mx-auto px-4 py-12">
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Carbon Calculator</h2>
-          <span className="text-sm font-medium text-gray-500">Step {currentStep + 1} of {STEPS.length}</span>
+          <h1 className="text-2xl font-bold text-gray-900">Carbon Calculator</h1>
+          <span className="text-sm font-medium text-gray-600" aria-live="polite">
+            Step {currentStep + 1} of {STEPS.length}
+          </span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
-          <motion.div 
-            className="bg-primary h-2.5 rounded-full" 
+        <div
+          className="w-full bg-gray-200 rounded-full h-2.5"
+          role="progressbar"
+          aria-valuenow={Math.round(progress)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Calculator progress: step ${currentStep + 1} of ${STEPS.length}`}
+        >
+          <motion.div
+            className="bg-primary h-2.5 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
@@ -113,8 +93,11 @@ export default function Calculator() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
             className="bg-green-50 p-12 rounded-3xl text-center shadow-inner border border-green-100 min-h-[400px] flex flex-col items-center justify-center"
+            role="status"
+            aria-live="polite"
+            aria-label="Carbon fact"
           >
-            <Leaf className="w-16 h-16 text-primary mb-6 animate-bounce" />
+            <Leaf className="w-16 h-16 text-primary mb-6 animate-bounce" aria-hidden="true" />
             <p className="text-2xl font-medium text-green-900">{FUN_FACTS[currentStep]}</p>
           </motion.div>
         ) : (
@@ -124,10 +107,11 @@ export default function Calculator() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 min-h-[400px] flex flex-col"
+            aria-labelledby="step-heading"
           >
             <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100">
-              {(() => { const Icon = STEPS[currentStep].icon; return <Icon className="w-8 h-8 text-primary" />; })()}
-              <h3 className="text-2xl font-semibold text-gray-800">{STEPS[currentStep].title}</h3>
+              {(() => { const Icon = STEPS[currentStep].icon; return <Icon className="w-8 h-8 text-primary" aria-hidden="true" />; })()}
+              <h2 id="step-heading" className="text-2xl font-semibold text-gray-800">{STEPS[currentStep].title}</h2>
             </div>
 
             <div className="flex-grow space-y-6">
@@ -156,13 +140,16 @@ export default function Calculator() {
 
               {currentStep === 2 && (
                 <div className="space-y-4">
-                  <p className="text-gray-600 mb-4">How would you describe your typical diet?</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {['meatHeavy', 'moderate', 'vegetarian', 'vegan'].map((type) => (
+                  <p className="text-gray-600 mb-4" id="diet-description">How would you describe your typical diet?</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="radiogroup" aria-labelledby="diet-description">
+                    {(['meatHeavy', 'moderate', 'vegetarian', 'vegan'] as const).map((type) => (
                       <button
                         key={type}
-                        onClick={() => setDiet(type as any)}
-                        className={`p-4 rounded-xl border-2 text-left transition-all ${diet === type ? 'border-primary bg-green-50' : 'border-gray-200 hover:border-green-200'}`}
+                        type="button"
+                        role="radio"
+                        aria-checked={diet === type}
+                        onClick={() => setDiet(type)}
+                        className={`p-4 rounded-xl border-2 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${diet === type ? 'border-primary bg-green-50' : 'border-gray-200 hover:border-green-200'}`}
                       >
                         <p className="font-semibold capitalize text-gray-800">{type.replace('Heavy', ' Heavy')}</p>
                       </button>
@@ -176,28 +163,39 @@ export default function Calculator() {
                   <p className="text-gray-600 mb-4">Estimate your household waste.</p>
                   <Input label="Total Waste (kg/week)" value={waste.kgPerWeek} onChange={(v) => setWaste({...waste, kgPerWeek: v})} />
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Recycling Rate (0% to 100%)</label>
-                    <input 
-                      type="range" 
-                      min="0" max="100" 
-                      value={waste.recyclingRate * 100} 
-                      onChange={(e) => setWaste({...waste, recyclingRate: parseInt(e.target.value) / 100})}
+                    <label htmlFor="recycling-rate" className="block text-sm font-medium text-gray-700 mb-2">
+                      Recycling Rate (0% to 100%)
+                    </label>
+                    <input
+                      id="recycling-rate"
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={waste.recyclingRate * 100}
+                      onChange={(e) => setWaste({ ...waste, recyclingRate: parseInt(e.target.value) / 100 })}
+                      aria-valuenow={Math.round(waste.recyclingRate * 100)}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuetext={`${Math.round(waste.recyclingRate * 100)} percent`}
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                     />
-                    <p className="text-right text-sm text-primary font-bold mt-1">{Math.round(waste.recyclingRate * 100)}%</p>
+                    <p className="text-right text-sm text-primary font-bold mt-1" aria-hidden="true">{Math.round(waste.recyclingRate * 100)}%</p>
                   </div>
                 </div>
               )}
 
               {currentStep === 4 && (
                 <div className="space-y-4">
-                  <p className="text-gray-600 mb-4">How would you describe your shopping habits (clothing, electronics, etc)?</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {['low', 'medium', 'high'].map((type) => (
+                  <p className="text-gray-600 mb-4" id="shopping-description">How would you describe your shopping habits (clothing, electronics, etc)?</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" role="radiogroup" aria-labelledby="shopping-description">
+                    {(['low', 'medium', 'high'] as const).map((type) => (
                       <button
                         key={type}
-                        onClick={() => setShopping(type as any)}
-                        className={`p-4 rounded-xl border-2 text-center transition-all ${shopping === type ? 'border-primary bg-green-50' : 'border-gray-200 hover:border-green-200'}`}
+                        type="button"
+                        role="radio"
+                        aria-checked={shopping === type}
+                        onClick={() => setShopping(type)}
+                        className={`p-4 rounded-xl border-2 text-center transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${shopping === type ? 'border-primary bg-green-50' : 'border-gray-200 hover:border-green-200'}`}
                       >
                         <p className="font-semibold capitalize text-gray-800">{type}</p>
                       </button>
@@ -209,20 +207,23 @@ export default function Calculator() {
 
             <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
               <button
+                type="button"
                 onClick={handlePrev}
                 disabled={currentStep === 0}
-                className={`flex items-center px-6 py-3 rounded-xl font-medium transition-colors ${currentStep === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
+                aria-disabled={currentStep === 0}
+                className={`flex items-center px-6 py-3 rounded-xl font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${currentStep === 0 ? 'text-gray-600 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'}`}
               >
-                <ArrowLeft className="w-5 h-5 mr-2" />
+                <ArrowLeft className="w-5 h-5 mr-2" aria-hidden="true" />
                 Back
               </button>
-              
+
               <button
+                type="button"
                 onClick={handleNext}
-                className="flex items-center px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-colors"
+                className="flex items-center px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 {currentStep === STEPS.length - 1 ? 'Calculate' : 'Next'}
-                {currentStep !== STEPS.length - 1 && <ArrowRight className="w-5 h-5 ml-2" />}
+                {currentStep !== STEPS.length - 1 && <ArrowRight className="w-5 h-5 ml-2" aria-hidden="true" />}
               </button>
             </div>
           </motion.div>
@@ -232,11 +233,13 @@ export default function Calculator() {
   );
 }
 
-function Input({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) {
+function Input({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+  const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <input
+        id={id}
         type="number"
         min="0"
         value={value || ''}

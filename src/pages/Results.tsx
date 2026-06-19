@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { GoogleGenAI } from '@google/genai';
@@ -16,13 +16,7 @@ export default function Results() {
   const [downloading, setDownloading] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (currentData) {
-      generateInsights();
-    }
-  }, [currentData]);
-
-  const generateInsights = async () => {
+  const generateInsights = useCallback(async () => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
       setAiInsight("**API Key Missing**\n\nPlease add `VITE_GEMINI_API_KEY` to your `.env` file to enable AI insights.");
@@ -69,7 +63,14 @@ Keep it concise, specific to their numbers, and encouraging.`;
     } finally {
       setLoadingInsight(false);
     }
-  };
+  }, [currentData]);
+
+  useEffect(() => {
+    if (currentData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      generateInsights();
+    }
+  }, [currentData, generateInsights]);
 
   const handleDownload = async () => {
     if (!printRef.current) return;
@@ -105,11 +106,11 @@ Keep it concise, specific to their numbers, and encouraging.`;
 
   if (!currentData) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-        <Leaf className="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold mb-4">No data found!</h2>
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center" role="status">
+        <Leaf className="w-16 h-16 text-green-500 mx-auto mb-4" aria-hidden="true" />
+        <h1 className="text-2xl font-bold mb-4">No data found!</h1>
         <p className="text-gray-600 mb-8">Please calculate your footprint first.</p>
-        <Link to="/calculator" className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700">
+        <Link to="/calculator" className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
           Go to Calculator
         </Link>
       </div>
@@ -145,6 +146,7 @@ Keep it concise, specific to their numbers, and encouraging.`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 space-y-8">
+      <h1 className="sr-only">Your carbon footprint results</h1>
 
       {/* Top Row */}
       <div className="flex flex-col md:flex-row gap-8">
@@ -160,34 +162,34 @@ Keep it concise, specific to their numbers, and encouraging.`;
               <Leaf className="w-5 h-5 text-green-600" />
               <div>
                 <h3 className="text-lg font-bold text-gray-900">My Carbon Footprint</h3>
-                <p className="text-xs text-gray-500">via CarbonSaathi · Your Carbon Companion</p>
+                <p className="text-xs text-gray-700">via CarbonSaathi · Your Carbon Companion</p>
               </div>
             </div>
 
             {/* Grade */}
             <div className="flex flex-col items-center justify-center py-6">
               <span className={`text-9xl font-black leading-none ${scoreColors[score]}`}>{score}</span>
-              <span className="text-sm font-semibold uppercase tracking-widest text-gray-500 mt-3">Carbon Grade</span>
+              <span className="text-sm font-semibold uppercase tracking-widest text-gray-700 mt-3">Carbon Grade</span>
             </div>
 
             {/* Score */}
             <div className="text-center py-6 border-t border-white/50">
               <div className="text-5xl font-extrabold text-gray-900">{totalTonnes}</div>
-              <p className="text-gray-500 font-medium mt-1 text-sm">Tonnes CO₂e per year</p>
+              <p className="text-gray-700 font-medium mt-1 text-sm">Tonnes CO₂e per year</p>
             </div>
 
             {/* Mini breakdown */}
             <div className="grid grid-cols-2 gap-2 mt-2">
               {chartData.map((item, i) => (
                 <div key={item.name} className="bg-white/60 rounded-xl px-3 py-2 text-center">
-                  <div className="text-xs text-gray-500">{item.name}</div>
+                  <div className="text-xs text-gray-700">{item.name}</div>
                   <div className="text-sm font-bold" style={{ color: COLORS[i % COLORS.length] }}>{item.value} kg</div>
                 </div>
               ))}
             </div>
 
             {/* Footer */}
-            <div className="text-xs text-center text-gray-400 font-medium mt-4 pt-4 border-t border-white/50">
+            <div className="text-xs text-center text-gray-600 font-medium mt-4 pt-4 border-t border-white/50">
               🌱 Join me in reducing our carbon impact!<br />
               <span className="text-gray-300">Powered by Google Gemini · Google Cloud</span>
             </div>
@@ -195,9 +197,12 @@ Keep it concise, specific to their numbers, and encouraging.`;
 
           {/* Download Button */}
           <button
+            type="button"
             onClick={handleDownload}
             disabled={downloading}
-            className="w-full mt-4 flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            aria-busy={downloading}
+            aria-label={downloading ? 'Generating result card image' : 'Download result card as PNG image'}
+            className="w-full mt-4 flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             {downloading ? (
               <>
@@ -211,7 +216,7 @@ Keep it concise, specific to their numbers, and encouraging.`;
               </>
             )}
           </button>
-          <p className="text-xs text-center text-gray-400 mt-2">Share on LinkedIn or Instagram 📱</p>
+          <p className="text-xs text-center text-gray-600 mt-2">Share on LinkedIn or Instagram 📱</p>
         </div>
 
         {/* Right Side */}
@@ -222,8 +227,8 @@ Keep it concise, specific to their numbers, and encouraging.`;
 
             {/* Donut Chart */}
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Emissions Breakdown</h3>
-              <div className="h-56">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Emissions Breakdown</h2>
+              <div className="h-56" role="img" aria-label={`Pie chart showing emissions breakdown: ${chartData.map(d => `${d.name} ${d.value} kg`).join(', ')}`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -258,7 +263,7 @@ Keep it concise, specific to their numbers, and encouraging.`;
 
             {/* Comparison Bars */}
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center space-y-5">
-              <h3 className="text-lg font-bold text-gray-900">How You Compare</h3>
+              <h2 className="text-lg font-bold text-gray-900">How You Compare</h2>
               <ComparisonBar label="You" value={currentData.total} color="bg-green-600" maxVal={7000} />
               <ComparisonBar label="India Average" value={AVERAGES.india} color="bg-orange-400" maxVal={7000} />
               <ComparisonBar label="Paris Target" value={AVERAGES.paris} color="bg-green-500" maxVal={7000} />
@@ -279,7 +284,7 @@ Keep it concise, specific to their numbers, and encouraging.`;
             </div>
 
             {loadingInsight ? (
-              <div className="flex items-center gap-3 text-green-700 py-4">
+              <div className="flex items-center gap-3 text-green-700 py-4" role="status" aria-live="polite">
                 <div className="animate-spin w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full flex-shrink-0"></div>
                 <span>Generating personalized insights with Gemini AI...</span>
               </div>
@@ -304,9 +309,11 @@ Keep it concise, specific to their numbers, and encouraging.`;
             )}
 
             <button
+              type="button"
               onClick={generateInsights}
               disabled={loadingInsight}
-              className="mt-4 text-sm text-green-700 hover:text-green-900 underline disabled:opacity-50"
+              aria-label="Regenerate AI insights"
+              className="mt-4 text-sm text-green-700 hover:text-green-900 underline disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
             >
               Regenerate insights ↺
             </button>
@@ -325,11 +332,18 @@ function ComparisonBar({ label, value, color, maxVal }: { label: string; value: 
         <span className="text-gray-700">{label}</span>
         <span className="text-gray-900 font-bold">{(value / 1000).toFixed(2)}t</span>
       </div>
-      <div className="w-full bg-gray-100 rounded-full h-2.5">
+      <div
+        className="w-full bg-gray-100 rounded-full h-2.5"
+        role="progressbar"
+        aria-valuenow={Math.round(percentage)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`${label}: ${(value / 1000).toFixed(2)} tonnes CO2 equivalent`}
+      >
         <div
           className={`h-2.5 rounded-full transition-all duration-700 ${color}`}
           style={{ width: `${percentage}%` }}
-        ></div>
+        />
       </div>
     </div>
   );

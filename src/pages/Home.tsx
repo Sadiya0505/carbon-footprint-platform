@@ -40,11 +40,11 @@ function FeatureCard({ icon, title, description, delay }: {
 }) {
   return (
     <div className={`group flex flex-col items-center text-center p-8 rounded-2xl transition-all duration-300 hover:bg-white hover:shadow-xl hover:-translate-y-1 border border-transparent hover:border-green-100 animate-fade-in ${delay}`}>
-      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-green-200 group-hover:scale-110 transition-transform">
+      <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-green-200 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-3">{title}</h3>
-      <p className="text-gray-500 leading-relaxed">{description}</p>
+      <p className="text-gray-700 leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -55,7 +55,7 @@ function StatCard({ value, label, suffix, color }: { value: number; label: strin
       <div className={`text-4xl md:text-5xl font-black ${color} mb-2`}>
         <AnimatedCounter end={value} suffix={suffix || ''} />
       </div>
-      <p className="text-gray-500 text-sm font-medium">{label}</p>
+      <p className="text-gray-700 text-sm font-medium">{label}</p>
     </div>
   );
 }
@@ -111,26 +111,26 @@ export default function Home() {
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
-                to="/dashboard"
-                className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-green-700 bg-white border-2 border-green-200 rounded-full transition-all hover:bg-green-50 hover:-translate-y-1"
+                to="/results"
+                className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-green-700 bg-white border-2 border-green-200 rounded-full transition-all hover:bg-green-50 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 View Dashboard
               </Link>
             </div>
 
             {/* Live Counter Card */}
-            <div className="relative mx-auto max-w-lg">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-3xl blur-xl opacity-20" />
+            <div className="relative mx-auto max-w-lg" aria-live="polite" aria-atomic="true">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-3xl blur-xl opacity-20" aria-hidden="true" />
               <div className="relative bg-white rounded-3xl shadow-2xl border border-green-100 p-8">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Live CO₂ Tracked</p>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden="true" />
+                  <p className="text-sm font-semibold text-gray-600 uppercase tracking-widest">Live CO₂ Tracked</p>
                 </div>
-                <div className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500 tracking-tighter">
+                <div className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500 tracking-tighter" aria-label={`${co2Simulated.toLocaleString()} tonnes CO2 equivalent tracked`}>
                   {co2Simulated.toLocaleString()}
                 </div>
-                <p className="mt-2 text-gray-500 font-medium">Tonnes CO₂e tracked by CarbonSaathi users</p>
-                <p className="text-xs text-gray-400 mt-1">Updates every 2 seconds</p>
+                <p className="mt-2 text-gray-600 font-medium">Tonnes CO₂e tracked by CarbonSaathi users</p>
+                <p className="text-xs text-gray-700 mt-1">Updates every 2 seconds</p>
               </div>
             </div>
           </div>
@@ -138,7 +138,8 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gradient-to-r from-green-600 to-emerald-500">
+      <section className="py-16 bg-gradient-to-r from-green-600 to-emerald-500" aria-labelledby="stats-heading">
+        <h2 id="stats-heading" className="sr-only">Platform statistics</h2>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <StatCard value={50000} label="Indians Tracking" suffix="+" color="text-white" />
@@ -150,11 +151,11 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-24 bg-gray-50" aria-labelledby="features-heading">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why CarbonSaathi?</h2>
-            <p className="text-gray-500 max-w-xl mx-auto">Built specifically for India, powered by the latest AI — everything you need to understand and reduce your impact.</p>
+            <h2 id="features-heading" className="text-4xl font-bold text-gray-900 mb-4">Why CarbonSaathi?</h2>
+            <p className="text-gray-700 max-w-xl mx-auto">Built specifically for India, powered by the latest AI — everything you need to understand and reduce your impact.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -199,11 +200,11 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-white" aria-labelledby="how-it-works-heading">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-gray-500">Three simple steps to understand and reduce your impact</p>
+            <h2 id="how-it-works-heading" className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
+            <p className="text-gray-700">Three simple steps to understand and reduce your impact</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 relative">
@@ -216,12 +217,12 @@ export default function Home() {
               { step: '03', title: 'Reduce', desc: 'Follow your AI-generated 90-day roadmap and track your improvement over time', icon: '🌱' },
             ].map((item) => (
               <div key={item.step} className="flex flex-col items-center text-center relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-4 shadow-lg shadow-green-200 z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl flex items-center justify-center text-2xl mb-4 shadow-lg shadow-green-200 z-10">
                   {item.icon}
                 </div>
                 <span className="text-xs font-bold text-green-500 uppercase tracking-widest mb-2">Step {item.step}</span>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-500 leading-relaxed">{item.desc}</p>
+                <p className="text-gray-700 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>

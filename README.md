@@ -35,7 +35,20 @@ CarbonSaathi is a production-grade web application that helps Indians:
 | Global Benchmarks | vs India avg (1.9t), Global (4.7t), Paris target (2.0t) |
 | Shareable Result Card | Downloadable PNG for LinkedIn/Instagram |
 | Fun Carbon Facts | Shown between calculator steps |
-| WCAG Accessible | Keyboard navigable, screen reader friendly |
+| WCAG Accessible | Skip links, ARIA labels, keyboard navigation, mobile menu |
+| Test Suite | Vitest + Testing Library + axe accessibility checks |
+
+---
+
+## 🧪 Testing
+
+```bash
+npm run test          # watch mode
+npm run test:run      # single run (CI)
+npm run test:coverage # coverage report
+```
+
+Tests cover emission factor calculations, Zustand store logic, all page components, and automated accessibility (axe) checks.
 
 ---
 
