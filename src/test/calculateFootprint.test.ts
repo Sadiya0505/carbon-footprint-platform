@@ -72,4 +72,28 @@ describe('calculateFootprint', () => {
 
     expect(result.shopping).toBe(EMISSION_FACTORS.shopping.high * 12)
   })
+
+  it('handles extreme outlier inputs securely without overflowing', () => {
+    const result = calculateFootprint({
+      transport: { petrolKm: 999999999, dieselKm: 0, evKm: 0, busKm: 0, trainKm: 0, flightKm: 0 },
+      energy: { electricityKwh: 0, lpgCylinders: 0, householdSize: 1 },
+      diet: 'moderate',
+      waste: { kgPerWeek: 0, recyclingRate: 0 },
+      shopping: 'low'
+    });
+    expect(result.transport).toBeGreaterThan(100000);
+  });
+
+  it('prevents negative emission values from negative inputs', () => {
+    const result = calculateFootprint({
+      transport: { petrolKm: -500, dieselKm: -100, evKm: -50, busKm: 0, trainKm: 0, flightKm: 0 },
+      energy: { electricityKwh: -200, lpgCylinders: -5, householdSize: -2 },
+      diet: 'vegan',
+      waste: { kgPerWeek: -10, recyclingRate: -0.5 },
+      shopping: 'low'
+    });
+    expect(result.transport).toBe(0);
+    expect(result.energy).toBe(0);
+    expect(result.waste).toBe(0);
+  });
 })

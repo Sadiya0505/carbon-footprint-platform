@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { calculateCarbonScore, AVERAGES } from '../lib/emissionFactors';
@@ -6,13 +6,15 @@ import { useGeminiInsights } from '../hooks/useGeminiInsights';
 import ReactMarkdown from 'react-markdown';
 import { Download, Bot, Leaf } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { useRef, useState } from 'react';
+import { ComparisonBar } from '../components/ui/ComparisonBar';
 
 const COLORS = ['#16a34a', '#2563eb', '#f59e0b', '#dc2626', '#8b5cf6'];
 
 export default function Results() {
   const currentData = useStore((state) => state.currentData);
   const { insight: aiInsight, loading: loadingInsight, generate: generateInsights } = useGeminiInsights(currentData);
+  const printRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (currentData) {
@@ -268,31 +270,6 @@ export default function Results() {
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function ComparisonBar({ label, value, color, maxVal }: { label: string; value: number; color: string; maxVal: number }) {
-  const percentage = Math.min((value / maxVal) * 100, 100);
-  return (
-    <div>
-      <div className="flex justify-between text-sm font-medium mb-1.5">
-        <span className="text-gray-700">{label}</span>
-        <span className="text-gray-900 font-bold">{(value / 1000).toFixed(2)}t</span>
-      </div>
-      <div
-        className="w-full bg-gray-100 rounded-full h-2.5"
-        role="progressbar"
-        aria-valuenow={Math.round(percentage)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={`${label}: ${(value / 1000).toFixed(2)} tonnes CO2 equivalent`}
-      >
-        <div
-          className={`h-2.5 rounded-full transition-all duration-700 ${color}`}
-          style={{ width: `${percentage}%` }}
-        />
       </div>
     </div>
   );

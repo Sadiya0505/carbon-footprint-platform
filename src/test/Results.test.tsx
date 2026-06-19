@@ -1,9 +1,18 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Results from '../pages/Results'
 import { useStore } from '../store/useStore'
 import { act } from '@testing-library/react'
+
+vi.mock('../hooks/useGeminiInsights', () => ({
+  useGeminiInsights: () => ({
+    insight: 'Mocked AI insights content.',
+    loading: false,
+    generate: vi.fn(),
+  }),
+}))
+
 
 const mockData = {
   transport: 500,

@@ -2,7 +2,7 @@ import { Input } from '../ui/Input';
 
 interface WasteProps {
   data: { kgPerWeek: number; recyclingRate: number; };
-  onChange: (data: any) => void;
+  onChange: (data: { kgPerWeek: number; recyclingRate: number; }) => void;
 }
 
 export function WasteForm({ data, onChange }: WasteProps) {

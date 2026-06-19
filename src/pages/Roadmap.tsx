@@ -1,40 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, Circle, Bot, Leaf, RefreshCw, ArrowRight } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useGeminiRoadmap } from '../hooks/useGeminiRoadmap';
 
-interface RoadmapItem {
-  text: string;
-  saving: string;
-  done: boolean;
-}
-
-interface RoadmapPlan {
-  phase30: RoadmapItem[];
-  phase60: RoadmapItem[];
-  phase90: RoadmapItem[];
-  summary: string;
-}
-
-const DEFAULT_PLAN: RoadmapPlan = {
-  summary: "Follow this 90-day journey to build sustainable habits and reduce your carbon footprint step by step.",
-  phase30: [
-    { text: "Switch off standby appliances and unplug chargers daily", saving: "Save ~50 kg CO₂/year", done: false },
-    { text: "Replace all incandescent bulbs with LED alternatives", saving: "Save ~40 kg CO₂/year", done: false },
-    { text: "Buy local and seasonal produce for at least 30% of groceries", saving: "Save ~30 kg CO₂/year", done: false },
-  ],
-  phase60: [
-    { text: "Carpool or use public transport at least twice a week", saving: "Save ~200 kg CO₂/year", done: false },
-    { text: "Start a home composting bin for kitchen waste", saving: "Save ~60 kg CO₂/year", done: false },
-    { text: "Reduce meat consumption by having 2 meat-free days per week", saving: "Save ~150 kg CO₂/year", done: false },
-  ],
-  phase90: [
-    { text: "Switch to a green energy provider or install a solar water heater", saving: "Save ~300 kg CO₂/year", done: false },
-    { text: "Reduce new clothing purchases by 50% — opt for second-hand", saving: "Save ~100 kg CO₂/year", done: false },
-    { text: "Plant 5 trees or donate to a local reforestation project", saving: "Offset ~100 kg CO₂/year", done: false },
-  ],
-};
 
 export default function Roadmap() {
   const currentData = useStore((state) => state.currentData);

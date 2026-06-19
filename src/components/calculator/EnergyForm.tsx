@@ -2,7 +2,7 @@ import { Input } from '../ui/Input';
 
 interface EnergyProps {
   data: { electricityKwh: number; lpgCylinders: number; householdSize: number; };
-  onChange: (data: any) => void;
+  onChange: (data: { electricityKwh: number; lpgCylinders: number; householdSize: number; }) => void;
 }
 
 export function EnergyForm({ data, onChange }: EnergyProps) {

@@ -2,7 +2,7 @@ import { Input } from '../ui/Input';
 
 interface TransportProps {
   data: { petrolKm: number; dieselKm: number; evKm: number; busKm: number; trainKm: number; flightKm: number; };
-  onChange: (data: any) => void;
+  onChange: (data: { petrolKm: number; dieselKm: number; evKm: number; busKm: number; trainKm: number; flightKm: number; }) => void;
 }
 
 export function TransportForm({ data, onChange }: TransportProps) {

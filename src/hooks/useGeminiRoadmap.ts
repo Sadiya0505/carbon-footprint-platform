@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { FootprintData } from '../store/useStore';
+import type { FootprintData } from '../store/useStore';
 
 export interface RoadmapItem {
   text: string;
